@@ -11750,7 +11750,6 @@ inputState.guessing--;
         catch (RecognitionException e) {
             if (inputState.guessing==0) {
                 
-                // GRECLIPSE-1192
                 // Do we need better recognition of the specific problem here?
                 // (if so, see the label recovery for GRECLIPSE-1048)
                 reportError(e);

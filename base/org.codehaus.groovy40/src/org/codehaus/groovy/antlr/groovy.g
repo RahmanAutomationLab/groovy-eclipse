@@ -1577,20 +1577,20 @@ interfaceField!
     ;
 
 constructorBody  {Token first = LT(1); int start = mark();} // GRECLIPSE add
-     :   LCURLY! nls!
-         (   (explicitConstructorInvocation) =>   // Java compatibility hack
-                 eci:explicitConstructorInvocation! (sep! bb1:blockBody[sepToken]!)?
-             |   bb2:blockBody[EOF]!
-         )
-         RCURLY!
-         {LT(0).setColumn(LT(0).getColumn() + 1);
-          if (#eci != null)
-              #constructorBody = #(create(SLIST,"{",first,LT(0)), eci, bb1);
-          else
-              #constructorBody = #(create(SLIST,"{",first,LT(0)), bb2);
-         }
-     ;
-// GRECLIPSE add
+    :   LCURLY! nls!
+        (   (explicitConstructorInvocation) =>   // Java compatibility hack
+                eci:explicitConstructorInvocation! (sep! bb1:blockBody[sepToken]!)?
+            |   bb2:blockBody[EOF]!
+        )
+        RCURLY!
+        {LT(0).setColumn(LT(0).getColumn() + 1);
+         if (#eci != null)
+             #constructorBody = #(create(SLIST,"{",first,LT(0)), eci, bb1);
+         else
+             #constructorBody = #(create(SLIST,"{",first,LT(0)), bb2);
+        }
+    ;
+    // GRECLIPSE add
     exception
     catch [RecognitionException e] {
         tryBlockRecovery(e, first, start);
@@ -1599,7 +1599,7 @@ constructorBody  {Token first = LT(1); int start = mark();} // GRECLIPSE add
             ? #(create(SLIST,"{",first,LT(0)), bb2)
             : #(create(SLIST,"{",first,LT(0)), eci, bb1));
     }
-// GRECLIPSE end
+    // GRECLIPSE end
 
 /** Catch obvious constructor calls, but not the expr.super(...) calls */
 explicitConstructorInvocation
@@ -1780,22 +1780,21 @@ declaratorBrackets[AST typ]
 varInitializer
     :   ASSIGN^ nls! expressionStatementNoCheck
         // In {T x = y}, the left-context of y is that of an initializer.
-
-        // GRECLIPSE add
-        exception
-        catch [RecognitionException e] {
-            // if empty assignment was found, produce something compatible with content assist
-            int index = 0;
-            if (ASSIGN == LT(index).getType() || ASSIGN == LT(--index).getType()) {
-                astFactory.addASTChild(currentAST, missingIdentifier0(LT(index), LT(index + 1)));
-                #varInitializer = (AST) currentAST.root;
-                reportError(e);
-            } else {
-                throw e;
-            }
-        }
-        // GRECLIPSE end
     ;
+    // GRECLIPSE add
+    exception
+    catch [RecognitionException e] {
+        // if empty assignment was found, produce something compatible with content assist
+        int index = 0;
+        if (ASSIGN == LT(index).getType() || ASSIGN == LT(--index).getType()) {
+            astFactory.addASTChild(currentAST, missingIdentifier0(LT(index), LT(index + 1)));
+            #varInitializer = (AST) currentAST.root;
+            reportError(e);
+        } else {
+            throw e;
+        }
+    }
+    // GRECLIPSE end
 
 // This is a list of exception classes that the method is declared to throw
 throwsClause
@@ -1866,19 +1865,19 @@ multicatch
         {
           #multicatch = #(create(MULTICATCH,"MULTICATCH",first,LT(1)), m, id);
         }
-        // GRECLIPSE add
-        exception
-        catch [RecognitionException e] {
-            if (#m != null && LT(1).getType() == RPAREN) {
-                reportError(e);
-                #id = missingIdentifier(first, LT(1));
-                #multicatch = #(create(MULTICATCH,"MULTICATCH",first,LT(1)), m, id);
-            } else {
-                throw e;
-            }
-        }
-        // GRECLIPSE end
     ;
+    // GRECLIPSE add
+    exception
+    catch [RecognitionException e] {
+        if (#m != null && LT(1).getType() == RPAREN) {
+            reportError(e);
+            #id = missingIdentifier(first, LT(1));
+            #multicatch = #(create(MULTICATCH,"MULTICATCH",first,LT(1)), m, id);
+        } else {
+            throw e;
+        }
+    }
+    // GRECLIPSE end
 
 parameterModifiersOpt
         { Token first = LT(1);int seenDef = 0; }
@@ -1940,7 +1939,7 @@ openBlock  {Token first = LT(1); int start = mark();} // GRECLIPSE add
         RCURLY!
         {#openBlock = #(create(SLIST,"{",first,LT(1)), bb);}
     ;
-// GRECLIPSE add
+    // GRECLIPSE add
     exception
     catch [RecognitionException e] {
         tryBlockRecovery(e, first, start);
@@ -1960,7 +1959,7 @@ methodBody  {Token first = LT(1); int start = mark();}
         LT(0).setColumn(LT(0).getColumn() + 1);
         #methodBody = #(create(SLIST,"{",first,LT(0)));
     }
-// GRECLIPSE end
+    // GRECLIPSE end
 
 /** A block body is a parade of zero or more statements or expressions. */
 blockBody[int prevToken]
@@ -2211,13 +2210,13 @@ compatibleBodyStatement {Token first = LT(1);}
     |
         statement[EOF]
     ;
-// GRECLIPSE add
+    // GRECLIPSE add
     exception
     catch [RecognitionException e] {
         // GRECLIPSE-1046
         reportError(e);
     }
-// GRECLIPSE end
+    // GRECLIPSE end
 
 /** In Groovy, return, break, continue, throw, and assert can be used in a parenthesized expression context.
  *  Example:  println (x || (return));  println assert x, "won't print a false value!"
@@ -2385,7 +2384,7 @@ casesGroup  {Token first = LT(1);}
 aCase
     :   ("case"^ expression[0] | "default") COLON! nls!
     ;
-// GRECLIPSE add
+    // GRECLIPSE add
     exception
     catch [MismatchedTokenException e] {
         if (e.expecting == COLON) {
@@ -2396,20 +2395,20 @@ aCase
             throw e;
         }
     }
-// GRECLIPSE end
+    // GRECLIPSE end
 
 caseSList  {Token first = LT(1);}
     :   statement[COLON] (sep! (statement[sepToken])?)*
         {#caseSList = #(create(SLIST,"SLIST",first,LT(1)), #caseSList);}
     ;
-// GRECLIPSE add
+    // GRECLIPSE add
     exception
     catch [RecognitionException e] {
         reportError(e);
         astFactory.addASTChild(currentAST,astFactory.create(EMPTY_STAT,"EMPTY_STAT"));
         currentAST.root = #caseSList = #(create(SLIST,"SLIST",first,LT(1)), currentAST.root);
     }
-// GRECLIPSE end
+    // GRECLIPSE end
 
 // The initializer for a for loop
 forInit  {Token first = LT(1);}
@@ -2477,16 +2476,15 @@ commandArguments[AST head]
             AST headid = #(create(METHOD_CALL,"<command>",first,LT(1)), head, elist);
             #commandArguments = headid;
         }
-        // GRECLIPSE add
-        exception
-        catch [RecognitionException e] {
-            // GRECLIPSE-1192
-            // Do we need better recognition of the specific problem here?
-            // (if so, see the label recovery for GRECLIPSE-1048)
-            reportError(e);
-        }
-        // GRECLIPSE end
     ;
+    // GRECLIPSE add -- GRECLIPSE-1192
+    exception
+    catch [RecognitionException e] {
+        // Do we need better recognition of the specific problem here?
+        // (if so, see the label recovery for GRECLIPSE-1048)
+        reportError(e);
+    }
+    // GRECLIPSE end
 
 commandArgumentsGreedy[AST head]
 {
@@ -2873,25 +2871,25 @@ methodCallArgs[AST callee]
               #methodCallArgs = #(create(METHOD_CALL,"(",callee, LT(1)), callee, al);
           }
         }
-        // GRECLIPSE add
-        exception
-        catch [RecognitionException e] {
-            if (#al != null) {
-                reportError(e);
-                // copy of the block above - lets build it (assuming that all that was missing was the RPAREN)
-                if (callee != null && callee.getFirstChild() != null) {
-                    // method call like obj.method()
-                    #methodCallArgs = #(create(METHOD_CALL,"(",callee.getFirstChild(),LT(1)), callee, al);
-                } else {
-                    // method call like method() or new Expr(), in the latter case "callee" is null
-                    #methodCallArgs = #(create(METHOD_CALL,"(",callee,LT(1)), callee, al);
-                }
-            } else {
-                throw e;
-            }
-        }
-        // GRECLIPSE end
     ;
+    // GRECLIPSE add
+    exception
+    catch [RecognitionException e] {
+        if (#al != null) {
+            reportError(e);
+            // copy of the block above - lets build it (assuming that all that was missing was the RPAREN)
+            if (callee != null && callee.getFirstChild() != null) {
+                // method call like obj.method()
+                #methodCallArgs = #(create(METHOD_CALL,"(",callee.getFirstChild(),LT(1)), callee, al);
+            } else {
+                // method call like method() or new Expr(), in the latter case "callee" is null
+                #methodCallArgs = #(create(METHOD_CALL,"(",callee,LT(1)), callee, al);
+            }
+        } else {
+            throw e;
+        }
+    }
+    // GRECLIPSE end
 
 /** An appended block follows any expression.
  *  If the expression is not a method call, it is given an empty argument list.
@@ -2995,7 +2993,7 @@ conditionalExpression[int lc_stmt]
             // GRECLIPSE end
         )?
     ;
-// GRECLIPSE add
+    // GRECLIPSE add
     exception
     catch [NoViableAltException e] {
         if (currentAST != null && currentAST.root != null && currentAST.root.getType() == LT && LT(1).getType() == GT) {
@@ -3006,7 +3004,7 @@ conditionalExpression[int lc_stmt]
             throw e;
         }
     }
-// GRECLIPSE end
+    // GRECLIPSE end
 
 // logical or (||)  (level 13)
 logicalOrExpression[int lc_stmt]
